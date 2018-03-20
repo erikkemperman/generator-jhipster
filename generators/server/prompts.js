@@ -217,15 +217,15 @@ function askForServerSideOpts(meta) {
             choices: [
                 {
                     value: 'ehcache',
-                    name: 'Yes, with the Ehcache implementation (local cache, for a single node)'
+                    name: 'Yes, with Ehcache implementation (local cache, for a single node)'
                 },
                 {
                     value: 'hazelcast',
-                    name: 'Yes, with the Hazelcast implementation (distributed cache, for multiple nodes)'
+                    name: 'Yes, with Hazelcast implementation (distributed cache, for multiple nodes)'
                 },
                 {
                     value: 'infinispan',
-                    name: '[BETA] Yes, with the Infinispan (hybrid cache, for multiple nodes)'
+                    name: '[BETA] Yes, with Infinispan implementation (hybrid cache, for multiple nodes)'
                 },
                 {
                     value: 'no',
