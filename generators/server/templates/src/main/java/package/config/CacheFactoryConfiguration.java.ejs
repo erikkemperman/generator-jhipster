@@ -18,11 +18,8 @@
 -%>
 package <%=packageName%>.config;
 
-import org.hibernate.cache.infinispan.InfinispanRegionFactory;
 import org.hibernate.service.ServiceRegistry;
-import org.infinispan.configuration.cache.CacheMode;
-import org.infinispan.configuration.cache.ConfigurationBuilder;
-import org.infinispan.configuration.cache.TransactionMode;
+import org.infinispan.hibernate.cache.InfinispanRegionFactory;
 import org.infinispan.manager.EmbeddedCacheManager;
 
 import java.util.Properties;
@@ -39,8 +36,10 @@ import java.util.Properties;
  */
 public class CacheFactoryConfiguration extends InfinispanRegionFactory {
 
+    private static final long serialVersionUID = 1L;
+
     /**
-     * Defines an Hibernate L2 cache: hibernate-infinispan
+     * Defines an Hibernate L2 cache: infinispan-hibernate-cache
      */
     @Override
     protected EmbeddedCacheManager createCacheManager(Properties properties, ServiceRegistry serviceRegistry) {
@@ -49,3 +48,4 @@ public class CacheFactoryConfiguration extends InfinispanRegionFactory {
     }
 
 }
+
