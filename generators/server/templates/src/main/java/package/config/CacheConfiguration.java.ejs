@@ -345,7 +345,7 @@ public class CacheConfiguration {
      * If the service discovery is not enabled, host discovery will be based on
      * the default transport settings defined in the 'config-file' packaged within
      * the Jar. The 'config-file' can be overridden using the application property
-     * <i>jhipster.cache.inifnispan.config-file</i>
+     * <i>jhipster.cache.infinispan.config-file</i>
      *
      * <p>
      * If no service discovery is defined, you have the choice of 'config-file'
@@ -353,6 +353,8 @@ public class CacheConfiguration {
      * supports discovery natively for most of the platforms like Kubernets/OpenShift,
      * AWS, Azure and Google.
      *
+     * @param jHipsterProperties the jhipster properties to configure from
+     * @return the infinispan configurer
      */
     @Bean
     public InfinispanGlobalConfigurer globalConfiguration(JHipsterProperties jHipsterProperties) {
@@ -415,6 +417,8 @@ public class CacheConfiguration {
      *      </li>
      *  </ol>
      *
+     * @param jHipsterProperties the jhipster properties to configure from
+     * @return the infinispan configurer
      */
     @Bean
     public InfinispanCacheConfigurer cacheConfigurer(JHipsterProperties jHipsterProperties) {
@@ -471,6 +475,9 @@ public class CacheConfiguration {
      * <p>
      * jCache stats are at instance level. If you need stats at clustering level, then it needs to be retrieved from MBX:org.infinispan
      *
+     * @param cacheManager the embedded cache manager
+     * @param jHipsterProperties the jhipster properties to configure from
+     * @return the jcache manager
      */
     @Bean
     public JCacheManager getJCacheManager(EmbeddedCacheManager cacheManager, JHipsterProperties jHipsterProperties){
