@@ -23,6 +23,8 @@ import com.codahale.metrics.servlet.InstrumentedFilter;
 import com.codahale.metrics.servlets.MetricsServlet;
 import io.github.jhipster.config.JHipsterConstants;
 import io.github.jhipster.config.JHipsterProperties;
+import io.github.jhipster.test.LogbackRecorder;
+import io.github.jhipster.test.LogbackRecorder.Event;
 <%_ if (!skipClient) { _%>
 import io.github.jhipster.web.filter.CachingHttpHeadersFilter;
 <%_ } _%>
@@ -35,6 +37,7 @@ import org.apache.commons.io.FilenameUtils;
 <%_ if (devDatabaseType === 'h2Disk' || devDatabaseType === 'h2Memory') { _%>
 import org.h2.server.web.WebServlet;
 <%_ } _%>
+import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
 import org.springframework.boot.web.embedded.undertow.UndertowServletWebServerFactory;
@@ -75,6 +78,8 @@ public class WebConfigurerTest {
 
     private MetricRegistry metricRegistry;
 
+    private LogbackRecorder recorder;
+
     @Before
     public void setup() {
         servletContext = spy(new MockServletContext());
@@ -89,6 +94,13 @@ public class WebConfigurerTest {
         webConfigurer = new WebConfigurer(env, props);
         metricRegistry = new MetricRegistry();
         webConfigurer.setMetricRegistry(metricRegistry);
+
+        recorder = LogbackRecorder.forClass(WebConfigurer.class).reset().capture("ALL");
+    }
+
+    @After
+    public void teardown() {
+        recorder.release();
     }
 
     @Test
@@ -106,6 +118,8 @@ public class WebConfigurerTest {
         <%_ if (devDatabaseType === 'h2Disk' || devDatabaseType === 'h2Memory') { _%>
         verify(servletContext, never()).addServlet(eq("H2Console"), any(WebServlet.class));
         <%_ } _%>
+
+        assertLogs(JHipsterConstants.SPRING_PROFILE_PRODUCTION);
     }
 
     @Test
@@ -123,6 +137,8 @@ public class WebConfigurerTest {
         <%_ if (devDatabaseType === 'h2Disk' || devDatabaseType === 'h2Memory') { _%>
         verify(servletContext).addServlet(eq("H2Console"), any(WebServlet.class));
         <%_ } _%>
+
+        assertLogs(JHipsterConstants.SPRING_PROFILE_DEVELOPMENT);
     }
 
     @Test
@@ -143,6 +159,9 @@ public class WebConfigurerTest {
         container.getBuilderCustomizers().forEach(c -> c.customize(builder));
         OptionMap.Builder serverOptions = (OptionMap.Builder) ReflectionTestUtils.getField(builder, "serverOptions");
         assertThat(serverOptions.getMap().get(UndertowOptions.ENABLE_HTTP2)).isNull();
+
+        List<Event> events = recorder.play();
+        assertThat(events).hasSize(0);
     }
 
     @Test
@@ -154,6 +173,9 @@ public class WebConfigurerTest {
         container.getBuilderCustomizers().forEach(c -> c.customize(builder));
         OptionMap.Builder serverOptions = (OptionMap.Builder) ReflectionTestUtils.getField(builder, "serverOptions");
         assertThat(serverOptions.getMap().get(UndertowOptions.ENABLE_HTTP2)).isTrue();
+
+        List<Event> events = recorder.play();
+        assertThat(events).hasSize(0);
     }
 
     @Test
@@ -184,6 +206,13 @@ public class WebConfigurerTest {
                 .header(HttpHeaders.ORIGIN, "other.domain.com"))
             .andExpect(status().isOk())
             .andExpect(header().string(HttpHeaders.ACCESS_CONTROL_ALLOW_ORIGIN, "other.domain.com"));
+
+        List<Event> events = recorder.play();
+        assertThat(events).hasSize(1);
+
+        Event event = events.get(0);
+        assertThat(event.getLevel()).isEqualTo("DEBUG");
+        assertThat(event.getMessage()).isEqualTo(WebConfigurer.CORS_MESSAGE);
     }
 
     @Test
@@ -203,6 +232,13 @@ public class WebConfigurerTest {
                 .header(HttpHeaders.ORIGIN, "other.domain.com"))
             .andExpect(status().isOk())
             .andExpect(header().doesNotExist(HttpHeaders.ACCESS_CONTROL_ALLOW_ORIGIN));
+
+        List<Event> events = recorder.play();
+        assertThat(events).hasSize(1);
+
+        Event event = events.get(0);
+        assertThat(event.getLevel()).isEqualTo("DEBUG");
+        assertThat(event.getMessage()).isEqualTo(WebConfigurer.CORS_MESSAGE);
     }
 
     @Test
@@ -218,6 +254,9 @@ public class WebConfigurerTest {
                 .header(HttpHeaders.ORIGIN, "other.domain.com"))
             .andExpect(status().isOk())
             .andExpect(header().doesNotExist(HttpHeaders.ACCESS_CONTROL_ALLOW_ORIGIN));
+
+        List<Event> events = recorder.play();
+        assertThat(events).hasSize(0);
     }
 
     @Test
@@ -233,5 +272,50 @@ public class WebConfigurerTest {
                 .header(HttpHeaders.ORIGIN, "other.domain.com"))
             .andExpect(status().isOk())
             .andExpect(header().doesNotExist(HttpHeaders.ACCESS_CONTROL_ALLOW_ORIGIN));
+
+        List<Event> events = recorder.play();
+        assertThat(events).hasSize(0);
+    }
+
+    private void assertLogs(String profile) {
+        List<Event> events = recorder.play();
+        <%_ if (!skipClient || devDatabaseType === 'h2Disk' || devDatabaseType === 'h2Memory') { _%>
+        assertThat(events).hasSize(6);
+        <%_ } else { _%>
+        assertThat(events).hasSize(5);
+        <%_ } _%>
+
+        int i = 0;
+        Event event = events.get(i++);
+        assertThat(event.getLevel()).isEqualTo("INFO");
+        assertThat(event.getMessage()).isEqualTo(WebConfigurer.STARTING_MESSAGE);
+        assertThat(event.getArguments()).hasSize(1);
+        assertThat(event.getArguments()[0]).isEqualTo(profile);
+
+        event = events.get(i++);
+        assertThat(event.getLevel()).isEqualTo("DEBUG");
+        assertThat(event.getMessage()).isEqualTo(WebConfigurer.METRICS_REGISTRY_MESSAGE);
+
+        event = events.get(i++);
+        assertThat(event.getLevel()).isEqualTo("DEBUG");
+        assertThat(event.getMessage()).isEqualTo(WebConfigurer.METRICS_FILTER_MESSAGE);
+
+        event = events.get(i++);
+        assertThat(event.getLevel()).isEqualTo("DEBUG");
+        assertThat(event.getMessage()).isEqualTo(WebConfigurer.METRICS_SERVLET_MESSAGE);
+
+        <%_ if (!skipClient || devDatabaseType === 'h2Disk' || devDatabaseType === 'h2Memory') { _%>
+        event = events.get(i++);
+        assertThat(event.getLevel()).isEqualTo("DEBUG");
+        if (profile.equals(JHipsterConstants.SPRING_PROFILE_PRODUCTION)) {
+            assertThat(event.getMessage()).isEqualTo(WebConfigurer.CACHING_HEADERS_MESSAGE);
+        } else if (profile.equals(JHipsterConstants.SPRING_PROFILE_DEVELOPMENT)) {
+            assertThat(event.getMessage()).isEqualTo(WebConfigurer.H2CONSOLE_MESSAGE);
+        }
+        <%_ } _%>
+
+        event = events.get(i++);
+        assertThat(event.getLevel()).isEqualTo("INFO");
+        assertThat(event.getMessage()).isEqualTo(WebConfigurer.STARTED_MESSAGE);
     }
 }
