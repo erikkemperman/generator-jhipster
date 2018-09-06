@@ -1167,6 +1167,23 @@
                         </lifecycleMappingMetadata>
                     </configuration>
                 </plugin>
+                <plugin>
+                    <groupId>org.apache.maven.plugins</groupId>
+                    <artifactId>maven-war-plugin</artifactId>
+                    <version>${maven-war-plugin.version}</version>
+                    <configuration>
+                        <failOnMissingWebXml>false</failOnMissingWebXml>
+                        <warSourceDirectory><%= CLIENT_DIST_DIR %></warSourceDirectory>
+                        <webResources>
+                            <resource>
+                                <directory><%= MAIN_DIR %>webapp</directory>
+                                <includes>
+                                    <include>WEB-INF/**</include>
+                                </includes>
+                            </resource>
+                        </webResources>
+                    </configuration>
+                </plugin>
             </plugins>
         </pluginManagement>
     </build>
@@ -1259,19 +1276,6 @@
                     <plugin>
                         <groupId>org.apache.maven.plugins</groupId>
                         <artifactId>maven-war-plugin</artifactId>
-                        <version>${maven-war-plugin.version}</version>
-                        <configuration>
-                            <failOnMissingWebXml>false</failOnMissingWebXml>
-                            <warSourceDirectory><%= CLIENT_DIST_DIR %></warSourceDirectory>
-                            <webResources>
-                                <resource>
-                                    <directory><%= MAIN_DIR %>webapp</directory>
-                                    <includes>
-                                        <include>WEB-INF/**</include>
-                                    </includes>
-                                </resource>
-                            </webResources>
-                        </configuration>
                     </plugin>
                 </plugins>
             </build>
@@ -1309,21 +1313,6 @@
                     <plugin>
                         <groupId>org.apache.maven.plugins</groupId>
                         <artifactId>maven-war-plugin</artifactId>
-                        <version>${maven-war-plugin.version}</version>
-                        <configuration>
-                            <failOnMissingWebXml>false</failOnMissingWebXml>
-                            <%_ if (!skipClient) { _%>
-                            <warSourceDirectory><%= CLIENT_DIST_DIR %></warSourceDirectory>
-                            <webResources>
-                                <resource>
-                                    <directory><%= MAIN_DIR %>webapp</directory>
-                                    <includes>
-                                        <include>WEB-INF/**</include>
-                                    </includes>
-                                </resource>
-                            </webResources>
-                            <%_ } _%>
-                        </configuration>
                     </plugin>
                 </plugins>
             </build>
@@ -1357,21 +1346,6 @@
                     <plugin>
                         <groupId>org.apache.maven.plugins</groupId>
                         <artifactId>maven-war-plugin</artifactId>
-                        <version>${maven-war-plugin.version}</version>
-                        <configuration>
-                            <failOnMissingWebXml>false</failOnMissingWebXml>
-                            <%_ if (!skipClient) { _%>
-                            <warSourceDirectory><%= CLIENT_DIST_DIR %></warSourceDirectory>
-                            <webResources>
-                                <resource>
-                                    <directory><%= MAIN_DIR %>webapp</directory>
-                                    <includes>
-                                        <include>WEB-INF/**</include>
-                                    </includes>
-                                </resource>
-                            </webResources>
-                            <%_ } _%>
-                        </configuration>
                     </plugin>
                     <plugin>
                         <groupId>org.springframework.boot</groupId>
